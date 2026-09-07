@@ -1,0 +1,13 @@
+{
+  "name": "@wheres-waldo/api",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {},
+  "dependencies": {
+    "@wheres-waldo/shared": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^26.4.1"
+  }
+}
