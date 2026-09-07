@@ -1,6 +1,7 @@
 {
   "name": "wheres-waldo",
   "private": true,
+  "type": "module",
   "scripts": {},
   "devEngines": {
     "packageManager": {
@@ -10,7 +11,6 @@
     }
   },
   "packageManager": "pnpm@12.3.4",
-  "type": "module",
   "engines": {
     "node": ">=22.0.0"
   },
