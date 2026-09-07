@@ -2,7 +2,11 @@
   "name": "wheres-waldo",
   "private": true,
   "type": "module",
-  "scripts": {},
+  "scripts": {
+    "typecheck": "pnpm -r exec tsc -b",
+    "build": "pnpm -r build",
+    "lint": "eslint ."
+  },
   "devEngines": {
     "packageManager": {
       "name": "pnpm",
@@ -15,6 +19,12 @@
     "node": ">=22.0.0"
   },
   "devDependencies": {
-    "typescript": "^6.0.3"
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.10.0",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "eslint-plugin-react-refresh": "^0.5.6",
+    "globals": "^17.12.0",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.69.0"
   }
 }
