@@ -22,6 +22,8 @@ jobs:
       - run: pnpm install --frozen-lockfile
 
       - run: pnpm --filter @wheres-waldo/api exec prisma generate
+        env:
+          DATABASE_URL: postgresql://user:pass@localhost:5432/db
 
       - run: pnpm format:check
       - run: pnpm lint
