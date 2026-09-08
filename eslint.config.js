@@ -6,7 +6,12 @@ import tseslint from "typescript-eslint";
 import { defineConfig, globalIgnores } from "eslint/config";
 
 export default defineConfig([
-  globalIgnores(["**/dist/**", "**/node_modules/**", "**/*.tsbuildinfo"]),
+  globalIgnores([
+    "**/dist/**",
+    "**/node_modules/**",
+    "**/*.tsbuildinfo",
+    "packages/api/src/generated/**",
+  ]),
 
   // Base
   {
