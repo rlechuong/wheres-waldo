@@ -1,4 +1,4 @@
-import type { SceneSummary } from "@wheres-waldo/shared";
+import type { SceneSummary, SceneDetail, CharacterOption } from "@wheres-waldo/shared";
 
 const toSceneSummary = (scene: {
   id: number;
@@ -14,4 +14,22 @@ const toSceneSummary = (scene: {
   characterCount: scene._count.characters,
 });
 
-export { toSceneSummary };
+const toSceneDetail = (scene: {
+  id: number;
+  name: string;
+  slug: string;
+  publicId: string;
+  width: number;
+  height: number;
+  characters: CharacterOption[];
+}): SceneDetail => ({
+  id: scene.id,
+  name: scene.name,
+  slug: scene.slug,
+  publicId: scene.publicId,
+  width: scene.width,
+  height: scene.height,
+  characters: scene.characters,
+});
+
+export { toSceneSummary, toSceneDetail };

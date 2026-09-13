@@ -1,6 +1,7 @@
 import express from "express";
 import { createSceneRouter } from "./routes/scene.js";
 import type { PrismaClient } from "./generated/prisma/client.js";
+import { errorHandler } from "./middleware/error.js";
 
 const createApp = (prisma: PrismaClient) => {
   const app = express();
@@ -12,6 +13,7 @@ const createApp = (prisma: PrismaClient) => {
   });
 
   app.use("/scenes", createSceneRouter(prisma));
+  app.use(errorHandler);
 
   return app;
 };

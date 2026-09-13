@@ -15,4 +15,24 @@ const findAllScenes = async (prisma: PrismaClient) => {
   return scenes;
 };
 
-export { findAllScenes };
+const findSceneBySlug = async (prisma: PrismaClient, slug: string) => {
+  const scene = await prisma.scene.findUnique({
+    where: { slug },
+    select: {
+      id: true,
+      name: true,
+      slug: true,
+      publicId: true,
+      width: true,
+      height: true,
+      characters: {
+        select: { id: true, name: true, thumbnailPublicId: true },
+        orderBy: { id: "asc" },
+      },
+    },
+  });
+
+  return scene;
+};
+
+export { findAllScenes, findSceneBySlug };
