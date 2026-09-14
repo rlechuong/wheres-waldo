@@ -43,7 +43,6 @@ const createTestScene = async () => {
 describe("GET /scenes", () => {
   it("returns SceneSummary", async () => {
     const scene = await createTestScene();
-
     const app = createApp(prisma);
 
     const res = await request(app).get("/scenes");
@@ -64,13 +63,12 @@ describe("GET /scenes", () => {
 describe("GET /scenes/:slug", () => {
   it("returns SceneDetail", async () => {
     const scene = await createTestScene();
-
     const app = createApp(prisma);
 
     const res = await request(app).get("/scenes/test-scene-slug");
 
     const [first, second] = scene.characters;
-    if (!first || !second) throw new Error("Test Setup Failed.");
+    if (!first || !second) throw new Error("Test setup failed.");
 
     expect(res.status).toBe(200);
     expect(res.body).toEqual({
@@ -97,7 +95,6 @@ describe("GET /scenes/:slug", () => {
 
   it("returns 404 on invalid slug", async () => {
     await createTestScene();
-
     const app = createApp(prisma);
 
     const res = await request(app).get("/scenes/nonexistent-scene-slug");
