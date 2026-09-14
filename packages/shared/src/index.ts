@@ -21,3 +21,8 @@ export type SceneDetail = {
   height: number;
   characters: CharacterOption[];
 };
+
+export type CreateGameResponse = {
+  sessionId: string;
+  startedAt: string;
+};

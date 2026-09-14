@@ -1,7 +1,9 @@
 import express from "express";
 import { createSceneRouter } from "./routes/scene.js";
+import { createGameRouter } from "./routes/game.js";
 import type { PrismaClient } from "./generated/prisma/client.js";
 import { errorHandler } from "./middleware/error.js";
+import { ApiError } from "./lib/error.js";
 
 const createApp = (prisma: PrismaClient) => {
   const app = express();
@@ -13,6 +15,12 @@ const createApp = (prisma: PrismaClient) => {
   });
 
   app.use("/scenes", createSceneRouter(prisma));
+  app.use("/games", createGameRouter(prisma));
+
+  app.use((_req, _res, next) => {
+    next(new ApiError(404, "NOT_FOUND", "Route not found."));
+  });
+
   app.use(errorHandler);
 
   return app;
