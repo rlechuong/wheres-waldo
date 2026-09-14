@@ -9,4 +9,30 @@ const createGameSession = async (prisma: PrismaClient, sceneId: number) => {
   return gameSession;
 };
 
-export { createGameSession };
+const findGameState = async (prisma: PrismaClient, sessionId: string) => {
+  const gameSession = await prisma.gameSession.findUnique({
+    where: { id: sessionId },
+    select: {
+      id: true,
+      startedAt: true,
+      scene: {
+        select: {
+          slug: true,
+          _count: { select: { characters: true } },
+        },
+      },
+      foundCharacters: {
+        select: {
+          character: {
+            select: { id: true, name: true, xMin: true, xMax: true, yMin: true, yMax: true },
+          },
+        },
+        orderBy: { character: { id: "asc" } },
+      },
+    },
+  });
+
+  return gameSession;
+};
+
+export { createGameSession, findGameState };

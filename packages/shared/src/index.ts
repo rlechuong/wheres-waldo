@@ -26,3 +26,20 @@ export type CreateGameResponse = {
   sessionId: string;
   startedAt: string;
 };
+
+export type FoundCharacter = {
+  id: number;
+  name: string;
+  xMin: number;
+  xMax: number;
+  yMin: number;
+  yMax: number;
+};
+
+export type GameState = {
+  sessionId: string;
+  sceneSlug: string;
+  startedAt: string;
+  foundCharacters: FoundCharacter[];
+  isComplete: boolean;
+};
