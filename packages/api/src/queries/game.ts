@@ -35,4 +35,17 @@ const findGameState = async (prisma: PrismaClient, sessionId: string) => {
   return gameSession;
 };
 
-export { createGameSession, findGameState };
+const findFoundCharacter = async (
+  prisma: PrismaClient,
+  gameSessionId: string,
+  characterId: number,
+) => {
+  const foundCharacter = await prisma.foundCharacter.findUnique({
+    where: { gameSessionId_characterId: { gameSessionId, characterId } },
+    select: { gameSessionId: true },
+  });
+
+  return foundCharacter;
+};
+
+export { createGameSession, findGameState, findFoundCharacter };

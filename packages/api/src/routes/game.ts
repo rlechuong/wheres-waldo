@@ -1,9 +1,9 @@
 import { Router } from "express";
 import { handleCreateGame, handleGetCurrentGame } from "../controllers/game.js";
+import { requireSession } from "../middleware/session.js";
 import { validateBody } from "../middleware/validate.js";
 import { createGameSchema } from "../schemas/game.js";
 import type { PrismaClient } from "../generated/prisma/client.js";
-import { requireSession } from "../middleware/session.js";
 
 const createGameRouter = (prisma: PrismaClient) => {
   const router = Router();

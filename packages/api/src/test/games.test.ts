@@ -25,18 +25,18 @@ const createTestScene = async () => {
           {
             name: "Test Character 2",
             thumbnailPublicId: "testThumbnailPublicId2",
-            xMin: 0.1,
-            xMax: 0.2,
-            yMin: 0.1,
-            yMax: 0.2,
+            xMin: 0.3,
+            xMax: 0.4,
+            yMin: 0.3,
+            yMax: 0.4,
           },
           {
             name: "Test Character 3",
             thumbnailPublicId: "testThumbnailPublicId3",
-            xMin: 0.1,
-            xMax: 0.2,
-            yMin: 0.1,
-            yMax: 0.2,
+            xMin: 0.5,
+            xMax: 0.6,
+            yMin: 0.5,
+            yMax: 0.6,
           },
         ],
       },
@@ -222,6 +222,238 @@ describe("GET /games/current", () => {
     const res = await request(app)
       .get("/games/current")
       .set("X-Game-Session", "01936c7a-0000-7000-8000-000000000000");
+
+    expect(res.status).toBe(404);
+    expect(res.body).toEqual({
+      error: { code: "SESSION_NOT_FOUND", message: "Session not found." },
+    });
+  });
+});
+
+describe("POST /guesses", () => {
+  it("returns true for correct for a click inside a character's box", async () => {
+    const scene = await createTestScene();
+    const gameSession = await createTestGameSession(scene.id);
+    const [first] = scene.characters;
+    if (!first) throw new Error("Test setup failed.");
+    const app = createApp(prisma);
+
+    const res = await request(app)
+      .post("/guesses")
+      .set("X-Game-Session", gameSession.id)
+      .send({ characterId: first.id, x: 0.15, y: 0.15 });
+
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({
+      correct: true,
+      sessionId: gameSession.id,
+      sceneSlug: scene.slug,
+      startedAt: gameSession.startedAt.toISOString(),
+      foundCharacters: [
+        {
+          id: first.id,
+          name: first.name,
+          xMin: first.xMin,
+          xMax: first.xMax,
+          yMin: first.yMin,
+          yMax: first.yMax,
+        },
+      ],
+      isComplete: false,
+    });
+  });
+
+  it("rejects the wrong character at valid coordinates", async () => {
+    const scene = await createTestScene();
+    const gameSession = await createTestGameSession(scene.id);
+    const [first, second] = scene.characters;
+    if (!first || !second) throw new Error("Test setup failed.");
+    const app = createApp(prisma);
+
+    const res = await request(app)
+      .post("/guesses")
+      .set("X-Game-Session", gameSession.id)
+      .send({ characterId: second.id, x: 0.15, y: 0.15 });
+
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({
+      correct: false,
+      sessionId: gameSession.id,
+      sceneSlug: scene.slug,
+      startedAt: gameSession.startedAt.toISOString(),
+      foundCharacters: [],
+      isComplete: false,
+    });
+  });
+
+  it("rejects a correct character outside its box", async () => {
+    const scene = await createTestScene();
+    const gameSession = await createTestGameSession(scene.id);
+    const [first] = scene.characters;
+    if (!first) throw new Error("Test setup failed.");
+    const app = createApp(prisma);
+
+    const res = await request(app)
+      .post("/guesses")
+      .set("X-Game-Session", gameSession.id)
+      .send({ characterId: first.id, x: 0.95, y: 0.95 });
+
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({
+      correct: false,
+      sessionId: gameSession.id,
+      sceneSlug: scene.slug,
+      startedAt: gameSession.startedAt.toISOString(),
+      foundCharacters: [],
+      isComplete: false,
+    });
+  });
+
+  it("returns true for isComplete if all characters found after a guess", async () => {
+    const scene = await createTestScene();
+    const gameSession = await createTestGameSession(scene.id);
+    const [first, second, third] = scene.characters;
+    if (!first || !second || !third) throw new Error("Test setup failed.");
+    await prisma.foundCharacter.createMany({
+      data: [
+        { gameSessionId: gameSession.id, characterId: first.id },
+        { gameSessionId: gameSession.id, characterId: second.id },
+      ],
+    });
+    const app = createApp(prisma);
+
+    const res = await request(app)
+      .post("/guesses")
+      .set("X-Game-Session", gameSession.id)
+      .send({ characterId: third.id, x: 0.55, y: 0.55 });
+
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({
+      correct: true,
+      sessionId: gameSession.id,
+      sceneSlug: scene.slug,
+      startedAt: gameSession.startedAt.toISOString(),
+      foundCharacters: [
+        {
+          id: first.id,
+          name: first.name,
+          xMin: first.xMin,
+          xMax: first.xMax,
+          yMin: first.yMin,
+          yMax: first.yMax,
+        },
+        {
+          id: second.id,
+          name: second.name,
+          xMin: second.xMin,
+          xMax: second.xMax,
+          yMin: second.yMin,
+          yMax: second.yMax,
+        },
+        {
+          id: third.id,
+          name: third.name,
+          xMin: third.xMin,
+          xMax: third.xMax,
+          yMin: third.yMin,
+          yMax: third.yMax,
+        },
+      ],
+      isComplete: true,
+    });
+  });
+
+  it("returns 409 if character already found", async () => {
+    const scene = await createTestScene();
+    const gameSession = await createTestGameSession(scene.id);
+    const [first] = scene.characters;
+    if (!first) throw new Error("Test setup failed.");
+    await prisma.foundCharacter.create({
+      data: {
+        gameSessionId: gameSession.id,
+        characterId: first.id,
+      },
+    });
+    const app = createApp(prisma);
+
+    const res = await request(app)
+      .post("/guesses")
+      .set("X-Game-Session", gameSession.id)
+      .send({ characterId: first.id, x: 0.15, y: 0.15 });
+
+    expect(res.status).toBe(409);
+    expect(res.body).toEqual({
+      error: { code: "CHARACTER_ALREADY_FOUND", message: "Character already found." },
+    });
+  });
+
+  it("returns 409 if game already finished", async () => {
+    const scene = await createTestScene();
+    const gameSession = await prisma.gameSession.create({
+      data: {
+        finishedAt: new Date(),
+        sceneId: scene.id,
+      },
+    });
+    const [first] = scene.characters;
+    if (!first) throw new Error("Test setup failed.");
+    const app = createApp(prisma);
+
+    const res = await request(app)
+      .post("/guesses")
+      .set("X-Game-Session", gameSession.id)
+      .send({ characterId: first.id, x: 0.15, y: 0.15 });
+
+    expect(res.status).toBe(409);
+    expect(res.body).toEqual({
+      error: { code: "GAME_ALREADY_FINISHED", message: "Game already finished." },
+    });
+  });
+
+  it("returns 400 for a click out of range", async () => {
+    const scene = await createTestScene();
+    const gameSession = await createTestGameSession(scene.id);
+    const [first] = scene.characters;
+    if (!first) throw new Error("Test setup failed.");
+    const app = createApp(prisma);
+
+    const res = await request(app)
+      .post("/guesses")
+      .set("X-Game-Session", gameSession.id)
+      .send({ characterId: first.id, x: 1.5, y: 1.5 });
+
+    expect(res.status).toBe(400);
+    expect(res.body).toEqual({
+      error: { code: "INVALID_REQUEST_BODY", message: "x must be between 0 and 1." },
+    });
+  });
+
+  it("returns 401 if no header sent", async () => {
+    const scene = await createTestScene();
+    const [first] = scene.characters;
+    if (!first) throw new Error("Test setup failed.");
+    const app = createApp(prisma);
+
+    const res = await request(app)
+      .post("/guesses")
+      .send({ characterId: first.id, x: 0.15, y: 0.15 });
+
+    expect(res.status).toBe(401);
+    expect(res.body).toEqual({
+      error: { code: "MISSING_SESSION", message: "X-Game-Session header is required." },
+    });
+  });
+
+  it("returns 404 if session doesn't exist", async () => {
+    const scene = await createTestScene();
+    const [first] = scene.characters;
+    if (!first) throw new Error("Test setup failed.");
+    const app = createApp(prisma);
+
+    const res = await request(app)
+      .post("/guesses")
+      .set("X-Game-Session", "01936c7a-0000-7000-8000-000000000000")
+      .send({ characterId: first.id, x: 0.15, y: 0.15 });
 
     expect(res.status).toBe(404);
     expect(res.body).toEqual({

@@ -1,9 +1,9 @@
-import type { GameSession } from "../generated/prisma/client.js";
+import type { SessionContext } from "./session.js";
 
 declare global {
   namespace Express {
     interface Request {
-      session?: Pick<GameSession, "id" | "sceneId" | "startedAt" | "finishedAt" | "playerName">;
+      session?: SessionContext;
     }
   }
 }
