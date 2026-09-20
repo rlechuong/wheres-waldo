@@ -1,4 +1,5 @@
 import express from "express";
+import cors from "cors";
 import { createSceneRouter } from "./routes/scene.js";
 import { createGameRouter } from "./routes/game.js";
 import { createGuessRouter } from "./routes/guess.js";
@@ -8,6 +9,13 @@ import type { PrismaClient } from "./generated/prisma/client.js";
 
 const createApp = (prisma: PrismaClient) => {
   const app = express();
+
+  const allowedOrigins = process.env.CORS_ORIGINS?.split(",") ?? [];
+  const corsOptions = {
+    origin: allowedOrigins,
+    allowedHeaders: ["Content-Type", "X-Game-Session"],
+  };
+  app.use(cors(corsOptions));
 
   app.use(express.json());
 
