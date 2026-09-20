@@ -43,3 +43,9 @@ export type GameState = {
   foundCharacters: FoundCharacter[];
   isComplete: boolean;
 };
+
+export type ScoreResponse = {
+  playerName: string;
+  durationMs: number;
+  rank: number;
+};

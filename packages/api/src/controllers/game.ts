@@ -4,7 +4,8 @@ import { findSceneBySlug } from "../queries/scene.js";
 import { toCreateGameResponse, toGameState } from "../serializers/game.js";
 import { ApiError } from "../lib/error.js";
 import type { PrismaClient } from "../generated/prisma/client.js";
-import type { CreateGameBody } from "../schemas/game.js";
+import type { CreateGameBody, SubmitScoreBody } from "../schemas/game.js";
+import { submitScore } from "../services/score.js";
 
 const handleCreateGame =
   (prisma: PrismaClient) =>
@@ -34,4 +35,16 @@ const handleGetCurrentGame = (prisma: PrismaClient) => async (req: Request, res:
   res.json(toGameState(gameState));
 };
 
-export { handleCreateGame, handleGetCurrentGame };
+const handleSubmitScore =
+  (prisma: PrismaClient) =>
+  async (req: Request<unknown, unknown, SubmitScoreBody>, res: Response) => {
+    const session = req.session;
+    if (!session) {
+      throw new ApiError(500, "INTERNAL_ERROR", "Session middleware did not run.");
+    }
+
+    const result = await submitScore(prisma, session, req.body);
+    res.json(result);
+  };
+
+export { handleCreateGame, handleGetCurrentGame, handleSubmitScore };

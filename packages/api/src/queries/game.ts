@@ -48,4 +48,26 @@ const findFoundCharacter = async (
   return foundCharacter;
 };
 
-export { createGameSession, findGameState, findFoundCharacter };
+const updatePlayerName = async (prisma: PrismaClient, sessionId: string, playerName: string) => {
+  const result = await prisma.gameSession.updateMany({
+    where: { id: sessionId, playerName: null },
+    data: { playerName },
+  });
+
+  return result.count;
+};
+
+const countFasterGames = async (prisma: PrismaClient, sceneId: number, durationMs: number) => {
+  const rows = await prisma.$queryRaw<{ count: bigint }[]>`
+  SELECT COUNT(*) as count
+  FROM "GameSession"
+  WHERE "sceneId" = ${sceneId}
+    AND "playerName" IS NOT NULL
+    AND "finishedAt" IS NOT NULL
+    AND EXTRACT(EPOCH FROM ("finishedAt" - "startedAt")) * 1000 < ${durationMs}
+  `;
+
+  return Number(rows[0]?.count ?? 0);
+};
+
+export { createGameSession, findGameState, findFoundCharacter, updatePlayerName, countFasterGames };

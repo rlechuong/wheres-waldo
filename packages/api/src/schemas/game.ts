@@ -19,3 +19,13 @@ export const createGuessSchema = z.object({
 });
 
 export type CreateGuessBody = z.infer<typeof createGuessSchema>;
+
+export const submitScoreSchema = z.object({
+  playerName: z
+    .string()
+    .trim()
+    .max(30, { message: "playerName must be 30 characters or fewer." })
+    .default(""),
+});
+
+export type SubmitScoreBody = z.infer<typeof submitScoreSchema>;

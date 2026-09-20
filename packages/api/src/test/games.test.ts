@@ -59,6 +59,19 @@ const createTestGameSession = async (sceneId: number) => {
   return gameSession;
 };
 
+const createFinishedSession = async (
+  sceneId: number,
+  durationMs: number,
+  playerName: string | null = null,
+) => {
+  const startedAt = new Date("2026-01-01T00:00:00.000Z");
+  const finishedAt = new Date(startedAt.getTime() + durationMs);
+
+  return await prisma.gameSession.create({
+    data: { sceneId, startedAt, finishedAt, playerName },
+  });
+};
+
 describe("POST /games", () => {
   it("creates a session", async () => {
     const scene = await createTestScene();
@@ -454,6 +467,144 @@ describe("POST /guesses", () => {
       .post("/guesses")
       .set("X-Game-Session", "01936c7a-0000-7000-8000-000000000000")
       .send({ characterId: first.id, x: 0.15, y: 0.15 });
+
+    expect(res.status).toBe(404);
+    expect(res.body).toEqual({
+      error: { code: "SESSION_NOT_FOUND", message: "Session not found." },
+    });
+  });
+});
+
+describe("PATCH /games/current/score", () => {
+  it("returns playerName if submitted after a finished game", async () => {
+    const scene = await createTestScene();
+    const finishedSession = await createFinishedSession(scene.id, 60000);
+    await createFinishedSession(scene.id, 30000, "Thomas");
+    await createFinishedSession(scene.id, 90000, "Lam");
+    const app = createApp(prisma);
+
+    const res = await request(app)
+      .patch("/games/current/score")
+      .set("X-Game-Session", finishedSession.id)
+      .send({ playerName: "Richard" });
+
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({ playerName: "Richard", durationMs: 60000, rank: 2 });
+  });
+
+  it("returns Anonymous if blank name submitted after a finished game", async () => {
+    const scene = await createTestScene();
+    const finishedSession = await createFinishedSession(scene.id, 60000);
+    await createFinishedSession(scene.id, 30000, "Thomas");
+    await createFinishedSession(scene.id, 90000, "Lam");
+    const app = createApp(prisma);
+
+    const res = await request(app)
+      .patch("/games/current/score")
+      .set("X-Game-Session", finishedSession.id)
+      .send({ playerName: "" });
+
+    const data = await prisma.gameSession.findUnique({
+      where: { id: finishedSession.id },
+      select: { playerName: true },
+    });
+
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({ playerName: "Anonymous", durationMs: 60000, rank: 2 });
+    expect(data?.playerName).toBe("Anonymous");
+  });
+
+  it("returns Anonymous if white space submitted after a finished game", async () => {
+    const scene = await createTestScene();
+    const finishedSession = await createFinishedSession(scene.id, 60000);
+    await createFinishedSession(scene.id, 30000, "Thomas");
+    await createFinishedSession(scene.id, 90000, "Lam");
+    const app = createApp(prisma);
+
+    const res = await request(app)
+      .patch("/games/current/score")
+      .set("X-Game-Session", finishedSession.id)
+      .send({ playerName: "   " });
+
+    const data = await prisma.gameSession.findUnique({
+      where: { id: finishedSession.id },
+      select: { playerName: true },
+    });
+
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({ playerName: "Anonymous", durationMs: 60000, rank: 2 });
+    expect(data?.playerName).toBe("Anonymous");
+  });
+
+  it("returns 409 if game not finished", async () => {
+    const scene = await createTestScene();
+    const gameSession = await createTestGameSession(scene.id);
+    const app = createApp(prisma);
+
+    const res = await request(app)
+      .patch("/games/current/score")
+      .set("X-Game-Session", gameSession.id)
+      .send({ playerName: "Richard" });
+
+    expect(res.status).toBe(409);
+    expect(res.body).toEqual({
+      error: { code: "GAME_NOT_FINISHED", message: "Game not finished." },
+    });
+  });
+
+  it("returns 409 if name already submitted", async () => {
+    const scene = await createTestScene();
+    const finishedSession = await createFinishedSession(scene.id, 60000, "Richard");
+    const app = createApp(prisma);
+
+    const res = await request(app)
+      .patch("/games/current/score")
+      .set("X-Game-Session", finishedSession.id)
+      .send({ playerName: "Richard" });
+
+    expect(res.status).toBe(409);
+    expect(res.body).toEqual({
+      error: { code: "NAME_ALREADY_SUBMITTED", message: "Name already submitted." },
+    });
+  });
+
+  it("returns 400 if playerName too long", async () => {
+    const scene = await createTestScene();
+    const finishedSession = await createFinishedSession(scene.id, 60000);
+    const app = createApp(prisma);
+
+    const res = await request(app)
+      .patch("/games/current/score")
+      .set("X-Game-Session", finishedSession.id)
+      .send({ playerName: "a".repeat(31) });
+
+    expect(res.status).toBe(400);
+    expect(res.body).toEqual({
+      error: {
+        code: "INVALID_REQUEST_BODY",
+        message: "playerName must be 30 characters or fewer.",
+      },
+    });
+  });
+
+  it("returns 401 if no header sent", async () => {
+    const app = createApp(prisma);
+
+    const res = await request(app).patch("/games/current/score").send({ playerName: "Richard" });
+
+    expect(res.status).toBe(401);
+    expect(res.body).toEqual({
+      error: { code: "MISSING_SESSION", message: "X-Game-Session header is required." },
+    });
+  });
+
+  it("returns 404 if session doesn't exist", async () => {
+    const app = createApp(prisma);
+
+    const res = await request(app)
+      .patch("/games/current/score")
+      .set("X-Game-Session", "01936c7a-0000-7000-8000-000000000000")
+      .send({ playerName: "Richard" });
 
     expect(res.status).toBe(404);
     expect(res.body).toEqual({
