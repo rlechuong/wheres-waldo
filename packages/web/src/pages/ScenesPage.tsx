@@ -1,6 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router";
 import { fetchScenes } from "../lib/api/scenes.js";
+import { cloudinaryUrl } from "../lib/cloudinary.js";
+import styles from "./ScenesPage.module.css";
 
 const ScenesPage = () => {
   const {
@@ -21,9 +23,15 @@ const ScenesPage = () => {
         <ul>
           {scenes.map((scene) => (
             <li key={scene.id}>
-              <h2>
-                <Link to={`/scenes/${scene.slug}`}>{scene.name}</Link>
-              </h2>
+              <Link to={`/scenes/${scene.slug}`}>
+                <img
+                  className={styles.thumbnail}
+                  src={cloudinaryUrl(scene.publicId, { width: 400 })}
+                  alt=""
+                  loading="lazy"
+                />
+                <h2>{scene.name}</h2>
+              </Link>
               <p>
                 {scene.characterCount === 1
                   ? "1 character to find"
