@@ -49,3 +49,13 @@ export type ScoreResponse = {
   durationMs: number;
   rank: number;
 };
+
+export type GuessResponse = {
+  correct: boolean;
+} & GameState;
+
+export type GuessRequest = {
+  characterId: number;
+  x: number;
+  y: number;
+};
