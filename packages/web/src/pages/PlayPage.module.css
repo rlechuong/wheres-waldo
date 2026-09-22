@@ -1,0 +1,23 @@
+.imageContainer {
+  position: relative;
+}
+
+.targetingBox {
+  position: absolute;
+  border: 2px solid red;
+  width: 48px;
+  height: 48px;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.characterMenu {
+  position: absolute;
+  transform: translate(32px, -50%);
+  background-color: yellow;
+}
+
+.characterMenu ul {
+  list-style: none;
+  padding: 0;
+}
