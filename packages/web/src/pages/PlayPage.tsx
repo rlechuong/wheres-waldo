@@ -1,10 +1,9 @@
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { useParams } from "react-router";
 import { useState } from "react";
 import { fetchScene } from "../lib/api/scenes.js";
+import { useGameSession } from "../hooks/useGameSession.js";
 import { cloudinaryUrl } from "../lib/cloudinary.js";
-import { createGame } from "../lib/api/games.js";
-import { loadSessionId, saveSessionId } from "../lib/session.js";
 import type { MouseEvent } from "react";
 import styles from "./PlayPage.module.css";
 
@@ -18,19 +17,12 @@ const PlayPage = () => {
     error,
   } = useQuery({ queryKey: ["scenes", slug], queryFn: () => fetchScene(slug) });
 
-  const [sessionId, setSessionId] = useState<string | null>(() => loadSessionId(slug));
+  const { sessionId, gameState, start, isStarting, isLoading } = useGameSession(slug);
+
   const [target, setTarget] = useState<{ x: number; y: number } | null>(null);
 
-  const startGame = useMutation({
-    mutationFn: () => createGame(slug),
-    onSuccess: (data) => {
-      saveSessionId(slug, data.sessionId);
-      setSessionId(data.sessionId);
-      if (import.meta.env.DEV) console.log("Started session: ", data.sessionId);
-    },
-  });
-
   const handleClick = (e: MouseEvent<HTMLImageElement>) => {
+    if (!sessionId) return;
     const rect = e.currentTarget.getBoundingClientRect();
     const x = (e.clientX - rect.left) / rect.width;
     const y = (e.clientY - rect.top) / rect.width;
@@ -62,10 +54,11 @@ const PlayPage = () => {
     <section>
       <h1>{scene.name}</h1>
       {!sessionId && (
-        <button onClick={() => startGame.mutate()} disabled={startGame.isPending}>
+        <button onClick={start} disabled={isStarting}>
           Start
         </button>
       )}
+      {isLoading && <p>Resuming game...</p>}
       <div className={styles.imageContainer}>
         <img
           onClick={handleClick}
