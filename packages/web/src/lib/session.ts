@@ -1,6 +1,6 @@
 const key = (slug: string) => `waldo:session:${slug}`;
 
-const getSessionId = (slug: string): string | null => {
+const loadSessionId = (slug: string): string | null => {
   try {
     return localStorage.getItem(key(slug));
   } catch {
@@ -8,7 +8,7 @@ const getSessionId = (slug: string): string | null => {
   }
 };
 
-const setSessionId = (slug: string, id: string): void => {
+const saveSessionId = (slug: string, id: string): void => {
   try {
     localStorage.setItem(key(slug), id);
   } catch {
@@ -24,4 +24,4 @@ const clearSessionId = (slug: string): void => {
   }
 };
 
-export { getSessionId, setSessionId, clearSessionId };
+export { loadSessionId, saveSessionId, clearSessionId };
