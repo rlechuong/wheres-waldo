@@ -13,16 +13,25 @@ const PlayPage = () => {
 
   const {
     data: scene,
-    isPending,
-    error,
+    isPending: isLoadingScene,
+    error: sceneError,
   } = useQuery({ queryKey: ["scenes", slug], queryFn: () => fetchScene(slug) });
 
-  const { sessionId, gameState, start, isStarting, isLoading } = useGameSession(slug);
+  const {
+    sessionId,
+    gameState,
+    startGame,
+    isStartingGame,
+    isResumingGame,
+    submitGuess,
+    isSubmittingGuess,
+    lastGuessCorrect,
+  } = useGameSession(slug);
 
   const [target, setTarget] = useState<{ x: number; y: number } | null>(null);
 
-  const handleClick = (e: MouseEvent<HTMLImageElement>) => {
-    if (!sessionId) return;
+  const handleImageClick = (e: MouseEvent<HTMLImageElement>) => {
+    if (!sessionId || gameState?.isComplete) return;
     const rect = e.currentTarget.getBoundingClientRect();
     const x = (e.clientX - rect.left) / rect.width;
     const y = (e.clientY - rect.top) / rect.width;
@@ -32,7 +41,7 @@ const PlayPage = () => {
 
   const handleGuess = (characterId: number) => {
     if (!target) return;
-    console.log({ characterId, x: target.x, y: target.y });
+    submitGuess({ characterId, x: target.x, y: target.y });
     setTarget(null);
   };
 
@@ -40,40 +49,60 @@ const PlayPage = () => {
     setTarget(null);
   };
 
-  if (isPending) return <p>Loading scene...</p>;
-  if (error) return <p>Couldn't load scene: {error.message}</p>;
+  if (isLoadingScene) return <p>Loading scene...</p>;
+  if (sceneError) return <p>Couldn't load scene: {sceneError.message}</p>;
 
-  const targetStyle = target
+  const targetPosition = target
     ? {
         left: `${target.x * 100}%`,
         top: `${((target.y * scene.width) / scene.height) * 100}%`,
       }
     : undefined;
 
+  const foundCharactersIds = new Set(gameState?.foundCharacters.map((character) => character.id));
+  const remainingCharacters = scene.characters.filter(
+    (character) => !foundCharactersIds.has(character.id),
+  );
+
   return (
     <section>
       <h1>{scene.name}</h1>
       {!sessionId && (
-        <button onClick={start} disabled={isStarting}>
+        <button onClick={startGame} disabled={isStartingGame}>
           Start
         </button>
       )}
-      {isLoading && <p>Resuming game...</p>}
+      {isResumingGame && <p>Resuming game...</p>}
+      {lastGuessCorrect === false && <p>Not quite.</p>}
       <div className={styles.imageContainer}>
         <img
-          onClick={handleClick}
+          onClick={handleImageClick}
           src={cloudinaryUrl(scene.publicId, { width: 2000 })}
           alt={scene.name}
           style={{ aspectRatio: `${scene.width} / ${scene.height}`, width: "100%" }}
         />
+        {gameState?.foundCharacters.map((character) => (
+          <div
+            key={character.id}
+            className={styles.marker}
+            style={{
+              left: `${character.xMin * 100}%`,
+              top: `${((character.yMin * scene.width) / scene.height) * 100}%`,
+              width: `${(character.xMax - character.xMin) * 100}%`,
+              height: `${(((character.yMax - character.yMin) * scene.width) / scene.height) * 100}%`,
+            }}
+          />
+        ))}
         {target && (
           <>
-            <div className={styles.targetingBox} style={targetStyle} />
-            <div className={styles.characterMenu} style={targetStyle}>
+            <div className={styles.targetingBox} style={targetPosition} />
+            <div className={styles.characterMenu} style={targetPosition}>
               <ul>
-                {scene.characters.map((character) => (
+                {remainingCharacters.map((character) => (
                   <li key={character.id}>
-                    <button onClick={() => handleGuess(character.id)}>{character.name}</button>
+                    <button onClick={() => handleGuess(character.id)} disabled={isSubmittingGuess}>
+                      {character.name}
+                    </button>
                   </li>
                 ))}
               </ul>

@@ -1,37 +1,54 @@
 import { useEffect } from "react";
-import { useQuery, useMutation, skipToken } from "@tanstack/react-query";
-import { createGame, fetchGameState } from "../lib/api/games.js";
+import { useQuery, useMutation, skipToken, useQueryClient } from "@tanstack/react-query";
+import { postGame, fetchGameState, postGuess } from "../lib/api/games.js";
 import { loadSessionId, saveSessionId, clearSessionId } from "../lib/session.js";
 import { ApiError } from "../lib/api.js";
+import type { GuessRequest } from "@wheres-waldo/shared";
 
 const useGameSession = (slug: string) => {
-  const startGame = useMutation({
-    mutationFn: () => createGame(slug),
+  const queryClient = useQueryClient();
+
+  const startGameMutation = useMutation({
+    mutationFn: () => postGame(slug),
     onSuccess: (data) => saveSessionId(slug, data.sessionId),
   });
 
-  const storedSessionId = startGame.data?.sessionId ?? loadSessionId(slug);
+  const unverifiedSessionId = startGameMutation.data?.sessionId ?? loadSessionId(slug);
 
-  const game = useQuery({
-    queryKey: ["game", storedSessionId],
-    queryFn: storedSessionId ? () => fetchGameState(storedSessionId) : skipToken,
+  const gameQuery = useQuery({
+    queryKey: ["game", unverifiedSessionId],
+    queryFn: unverifiedSessionId ? () => fetchGameState(unverifiedSessionId) : skipToken,
     retry: false,
   });
 
-  const sessionMissing = game.error instanceof ApiError && game.error.code === "SESSION_NOT_FOUND";
+  const sessionMissing =
+    gameQuery.error instanceof ApiError && gameQuery.error.code === "SESSION_NOT_FOUND";
 
-  const sessionId = sessionMissing ? null : storedSessionId;
+  const sessionId = sessionMissing ? null : unverifiedSessionId;
 
   useEffect(() => {
     if (sessionMissing) clearSessionId(slug);
   }, [sessionMissing, slug]);
 
+  const guessMutation = useMutation({
+    mutationFn: (body: GuessRequest) => {
+      if (!sessionId) throw new Error("No active session.");
+      return postGuess(sessionId, body);
+    },
+    onSuccess: ({ correct: _correct, ...gameState }) => {
+      queryClient.setQueryData(["game", sessionId], gameState);
+    },
+  });
+
   return {
     sessionId,
-    gameState: sessionId ? game.data : undefined,
-    start: () => startGame.mutate(),
-    isStarting: startGame.isPending,
-    isLoading: game.isPending && sessionId !== null,
+    gameState: sessionId ? gameQuery.data : undefined,
+    startGame: () => startGameMutation.mutate(),
+    isStartingGame: startGameMutation.isPending,
+    isResumingGame: gameQuery.isPending && sessionId !== null,
+    submitGuess: guessMutation.mutate,
+    isSubmittingGuess: guessMutation.isPending,
+    lastGuessCorrect: guessMutation.data?.correct,
   };
 };
 

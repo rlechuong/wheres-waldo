@@ -21,3 +21,9 @@
   list-style: none;
   padding: 0;
 }
+
+.marker {
+  position: absolute;
+  border: 3px dotted green;
+  pointer-events: none;
+}
