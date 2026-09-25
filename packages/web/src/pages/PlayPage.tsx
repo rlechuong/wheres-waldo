@@ -3,7 +3,9 @@ import { useParams } from "react-router";
 import { useState } from "react";
 import { fetchScene } from "../lib/api/scenes.js";
 import { useGameSession } from "../hooks/useGameSession.js";
+import { useElapsedTime } from "../hooks/useElapsedTime.js";
 import { cloudinaryUrl } from "../lib/cloudinary.js";
+import { formatDuration } from "../lib/format.js";
 import type { MouseEvent } from "react";
 import styles from "./PlayPage.module.css";
 
@@ -27,6 +29,8 @@ const PlayPage = () => {
     isSubmittingGuess,
     lastGuessCorrect,
   } = useGameSession(slug);
+
+  const elapsed = useElapsedTime(gameState?.startedAt, !!gameState && !gameState.isComplete);
 
   const [target, setTarget] = useState<{ x: number; y: number } | null>(null);
 
@@ -74,6 +78,7 @@ const PlayPage = () => {
       )}
       {isResumingGame && <p>Resuming game...</p>}
       {lastGuessCorrect === false && <p>Not quite.</p>}
+      {!!gameState && <span>{formatDuration(elapsed)}</span>}
       <div className={styles.imageContainer}>
         <img
           onClick={handleImageClick}

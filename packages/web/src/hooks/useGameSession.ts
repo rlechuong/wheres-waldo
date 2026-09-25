@@ -10,7 +10,16 @@ const useGameSession = (slug: string) => {
 
   const startGameMutation = useMutation({
     mutationFn: () => postGame(slug),
-    onSuccess: (data) => saveSessionId(slug, data.sessionId),
+    onSuccess: (data) => {
+      saveSessionId(slug, data.sessionId);
+      queryClient.setQueryData(["game", data.sessionId], {
+        sessionId: data.sessionId,
+        sceneSlug: slug,
+        startedAt: data.startedAt,
+        foundCharacters: [],
+        isComplete: false,
+      });
+    },
   });
 
   const unverifiedSessionId = startGameMutation.data?.sessionId ?? loadSessionId(slug);
