@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useQuery, useMutation, skipToken, useQueryClient } from "@tanstack/react-query";
-import { postGame, fetchGameState, postGuess } from "../lib/api/games.js";
+import { postGame, fetchGameState, postGuess, patchScore } from "../lib/api/games.js";
 import { loadSessionId, saveSessionId, clearSessionId } from "../lib/session.js";
 import { ApiError } from "../lib/api.js";
 import type { GuessRequest } from "@wheres-waldo/shared";
@@ -49,6 +49,13 @@ const useGameSession = (slug: string) => {
     },
   });
 
+  const scoreMutation = useMutation({
+    mutationFn: (playerName: string) => {
+      if (!sessionId) throw new Error("No active session.");
+      return patchScore(sessionId, playerName);
+    },
+  });
+
   return {
     sessionId,
     gameState: sessionId ? gameQuery.data : undefined,
@@ -58,6 +65,10 @@ const useGameSession = (slug: string) => {
     submitGuess: guessMutation.mutate,
     isSubmittingGuess: guessMutation.isPending,
     lastGuessCorrect: guessMutation.data?.correct,
+    submitScore: scoreMutation.mutate,
+    isSubmittingScore: scoreMutation.isPending,
+    scoreResult: scoreMutation.data,
+    scoreError: scoreMutation.error,
   };
 };
 

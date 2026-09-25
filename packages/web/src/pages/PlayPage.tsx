@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-import { useParams } from "react-router";
-import { useState } from "react";
+import { useParams, Link } from "react-router";
+import { useEffect, useRef, useState } from "react";
 import { fetchScene } from "../lib/api/scenes.js";
 import { useGameSession } from "../hooks/useGameSession.js";
 import { useElapsedTime } from "../hooks/useElapsedTime.js";
@@ -28,11 +28,23 @@ const PlayPage = () => {
     submitGuess,
     isSubmittingGuess,
     lastGuessCorrect,
+    submitScore,
+    isSubmittingScore,
+    scoreResult,
+    scoreError,
   } = useGameSession(slug);
 
   const elapsed = useElapsedTime(gameState?.startedAt, !!gameState && !gameState.isComplete);
 
   const [target, setTarget] = useState<{ x: number; y: number } | null>(null);
+  const [playerName, setPlayerName] = useState("");
+
+  const dialogRef = useRef<HTMLDialogElement>(null);
+  const isComplete = gameState?.isComplete ?? false;
+
+  useEffect(() => {
+    if (isComplete) dialogRef.current?.showModal();
+  }, [isComplete]);
 
   const handleImageClick = (e: MouseEvent<HTMLImageElement>) => {
     if (!sessionId || gameState?.isComplete) return;
@@ -116,6 +128,46 @@ const PlayPage = () => {
           </>
         )}
       </div>
+      <dialog ref={dialogRef} className={styles.winDialog}>
+        <h2>You found everyone!</h2>
+        {isSubmittingScore && <p>Submitting Score...</p>}
+        {scoreResult ? (
+          <div>
+            <p>Submitted Name: {scoreResult.playerName}</p>
+            <p>Submitted Time: {formatDuration(scoreResult.durationMs)}</p>
+            <p>Rank: {scoreResult.rank}</p>
+            <p>
+              <Link to={`/scenes/${slug}/leaderboard`}>Leaderboard</Link>
+            </p>
+            <button type="button" onClick={() => dialogRef.current?.close()}>
+              Close
+            </button>
+          </div>
+        ) : (
+          <div>
+            <p>Final Time: {formatDuration(elapsed)}</p>
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                submitScore(playerName);
+              }}
+            >
+              <label htmlFor="playerName">Name</label>
+              <input
+                id="playerName"
+                type="text"
+                value={playerName}
+                onChange={(e) => setPlayerName(e.target.value)}
+              />
+              {scoreError && <p>{scoreError.message}</p>}
+              <button type="submit">Submit</button>
+            </form>
+            <button type="button" onClick={() => dialogRef.current?.close()}>
+              Skip
+            </button>
+          </div>
+        )}
+      </dialog>
     </section>
   );
 };
