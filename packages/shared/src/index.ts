@@ -40,6 +40,8 @@ export type GameState = {
   sessionId: string;
   sceneSlug: string;
   startedAt: string;
+  finishedAt: string | null;
+  playerName: string | null;
   foundCharacters: FoundCharacter[];
   isComplete: boolean;
 };

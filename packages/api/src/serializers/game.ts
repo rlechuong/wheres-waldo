@@ -10,7 +10,9 @@ const toCreateGameResponse = (gameSession: {
 
 const toGameState = (gameState: {
   id: string;
+  playerName: string | null;
   startedAt: Date;
+  finishedAt: Date | null;
   scene: {
     slug: string;
     _count: { characters: number };
@@ -18,8 +20,10 @@ const toGameState = (gameState: {
   foundCharacters: { character: FoundCharacter }[];
 }): GameState => ({
   sessionId: gameState.id,
+  playerName: gameState.playerName,
   sceneSlug: gameState.scene.slug,
   startedAt: gameState.startedAt.toISOString(),
+  finishedAt: gameState.finishedAt?.toISOString() ?? null,
   foundCharacters: gameState.foundCharacters.map((found) => found.character),
   isComplete: gameState.scene._count.characters === gameState.foundCharacters.length,
 });

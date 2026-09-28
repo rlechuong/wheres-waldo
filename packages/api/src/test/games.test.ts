@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import request from "supertest";
 import { createApp } from "../app.js";
 import { prisma } from "./setup.js";
-import type { CreateGameResponse } from "@wheres-waldo/shared";
+import type { CreateGameResponse, GuessResponse } from "@wheres-waldo/shared";
 
 const createTestScene = async () => {
   const scene = await prisma.scene.create({
@@ -128,6 +128,8 @@ describe("GET /games/current", () => {
       sessionId: gameSession.id,
       sceneSlug: scene.slug,
       startedAt: gameSession.startedAt.toISOString(),
+      finishedAt: null,
+      playerName: null,
       foundCharacters: [],
       isComplete: false,
     });
@@ -153,6 +155,8 @@ describe("GET /games/current", () => {
       sessionId: gameSession.id,
       sceneSlug: scene.slug,
       startedAt: gameSession.startedAt.toISOString(),
+      finishedAt: null,
+      playerName: null,
       foundCharacters: [
         {
           id: first.id,
@@ -188,6 +192,8 @@ describe("GET /games/current", () => {
       sessionId: gameSession.id,
       sceneSlug: scene.slug,
       startedAt: gameSession.startedAt.toISOString(),
+      finishedAt: null,
+      playerName: null,
       foundCharacters: [
         {
           id: first.id,
@@ -262,6 +268,8 @@ describe("POST /guesses", () => {
       sessionId: gameSession.id,
       sceneSlug: scene.slug,
       startedAt: gameSession.startedAt.toISOString(),
+      finishedAt: null,
+      playerName: null,
       foundCharacters: [
         {
           id: first.id,
@@ -294,6 +302,8 @@ describe("POST /guesses", () => {
       sessionId: gameSession.id,
       sceneSlug: scene.slug,
       startedAt: gameSession.startedAt.toISOString(),
+      finishedAt: null,
+      playerName: null,
       foundCharacters: [],
       isComplete: false,
     });
@@ -317,6 +327,8 @@ describe("POST /guesses", () => {
       sessionId: gameSession.id,
       sceneSlug: scene.slug,
       startedAt: gameSession.startedAt.toISOString(),
+      finishedAt: null,
+      playerName: null,
       foundCharacters: [],
       isComplete: false,
     });
@@ -339,13 +351,16 @@ describe("POST /guesses", () => {
       .post("/guesses")
       .set("X-Game-Session", gameSession.id)
       .send({ characterId: third.id, x: 0.55, y: 0.55 });
+    const body = res.body as GuessResponse;
 
     expect(res.status).toBe(200);
-    expect(res.body).toEqual({
+    expect(body).toEqual({
       correct: true,
       sessionId: gameSession.id,
       sceneSlug: scene.slug,
       startedAt: gameSession.startedAt.toISOString(),
+      finishedAt: body.finishedAt,
+      playerName: null,
       foundCharacters: [
         {
           id: first.id,
@@ -374,6 +389,13 @@ describe("POST /guesses", () => {
       ],
       isComplete: true,
     });
+    expect(typeof body.finishedAt).toBe("string");
+
+    const session = await prisma.gameSession.findUnique({
+      where: { id: gameSession.id },
+      select: { finishedAt: true },
+    });
+    expect(session?.finishedAt).not.toBeNull();
   });
 
   it("returns 409 if character already found", async () => {

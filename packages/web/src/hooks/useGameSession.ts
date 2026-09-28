@@ -16,6 +16,8 @@ const useGameSession = (slug: string) => {
         sessionId: data.sessionId,
         sceneSlug: slug,
         startedAt: data.startedAt,
+        finishedAt: null,
+        playerName: null,
         foundCharacters: [],
         isComplete: false,
       });

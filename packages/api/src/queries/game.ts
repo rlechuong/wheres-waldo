@@ -14,6 +14,8 @@ const findGameState = async (prisma: PrismaClient, sessionId: string) => {
     where: { id: sessionId },
     select: {
       id: true,
+      playerName: true,
+      finishedAt: true,
       startedAt: true,
       scene: {
         select: {
