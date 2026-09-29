@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { fetchScene } from "../lib/api/scenes.js";
 import { useGameSession } from "../hooks/useGameSession.js";
 import { useElapsedTime } from "../hooks/useElapsedTime.js";
+import { markScoreSkipped, wasScoreSkipped } from "../lib/session.js";
 import { cloudinaryUrl } from "../lib/cloudinary.js";
 import { formatDuration } from "../lib/format.js";
 import type { MouseEvent } from "react";
@@ -39,12 +40,21 @@ const PlayPage = () => {
   const [target, setTarget] = useState<{ x: number; y: number } | null>(null);
   const [playerName, setPlayerName] = useState("");
 
-  const dialogRef = useRef<HTMLDialogElement>(null);
   const isComplete = gameState?.isComplete ?? false;
+  const duration =
+    gameState?.finishedAt && gameState.startedAt
+      ? new Date(gameState.finishedAt).getTime() - new Date(gameState.startedAt).getTime()
+      : elapsed;
+  const submittedName = scoreResult?.playerName ?? gameState?.playerName ?? null;
+  const dialogRef = useRef<HTMLDialogElement>(null);
 
   useEffect(() => {
-    if (isComplete) dialogRef.current?.showModal();
-  }, [isComplete]);
+    if (isComplete && !submittedName && !wasScoreSkipped(slug)) dialogRef.current?.showModal();
+  }, [isComplete, submittedName, slug]);
+
+  useEffect(() => {
+    if (scoreResult) dialogRef.current?.close();
+  }, [scoreResult]);
 
   const handleImageClick = (e: MouseEvent<HTMLImageElement>) => {
     if (!sessionId || gameState?.isComplete) return;
@@ -89,8 +99,22 @@ const PlayPage = () => {
         </button>
       )}
       {isResumingGame && <p>Resuming game...</p>}
+      {isSubmittingScore && <p>Submitting Score...</p>}
       {lastGuessCorrect === false && <p>Not quite.</p>}
-      {!!gameState && <span>{formatDuration(elapsed)}</span>}
+      {!!gameState && !isComplete && <span>{formatDuration(duration)}</span>}
+      {isComplete && (
+        <div className={styles.results}>
+          <h2>You found everyone!</h2>
+          <p>Your time: {formatDuration(duration)}</p>
+          {submittedName ? (
+            <p>Submitted as {submittedName}.</p>
+          ) : (
+            <button onClick={() => dialogRef.current?.showModal()}>Submit your score</button>
+          )}
+          <Link to={`/scenes/${slug}/leaderboard`}>Leaderboard</Link>
+          <Link to="/">All scenes</Link>
+        </div>
+      )}
       <div className={styles.imageContainer}>
         <img
           onClick={handleImageClick}
@@ -130,43 +154,36 @@ const PlayPage = () => {
       </div>
       <dialog ref={dialogRef} className={styles.winDialog}>
         <h2>You found everyone!</h2>
-        {isSubmittingScore && <p>Submitting Score...</p>}
-        {scoreResult ? (
-          <div>
-            <p>Submitted Name: {scoreResult.playerName}</p>
-            <p>Submitted Time: {formatDuration(scoreResult.durationMs)}</p>
-            <p>Rank: {scoreResult.rank}</p>
-            <p>
-              <Link to={`/scenes/${slug}/leaderboard`}>Leaderboard</Link>
-            </p>
-            <button type="button" onClick={() => dialogRef.current?.close()}>
-              Close
-            </button>
-          </div>
-        ) : (
-          <div>
-            <p>Final Time: {formatDuration(elapsed)}</p>
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                submitScore(playerName);
-              }}
-            >
-              <label htmlFor="playerName">Name</label>
-              <input
-                id="playerName"
-                type="text"
-                value={playerName}
-                onChange={(e) => setPlayerName(e.target.value)}
-              />
-              {scoreError && <p>{scoreError.message}</p>}
-              <button type="submit">Submit</button>
-            </form>
-            <button type="button" onClick={() => dialogRef.current?.close()}>
-              Skip
-            </button>
-          </div>
-        )}
+        <p>Your time: {formatDuration(duration)}</p>
+
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            submitScore(playerName);
+          }}
+        >
+          <label htmlFor="playerName">Name</label>
+          <input
+            id="playerName"
+            type="text"
+            value={playerName}
+            onChange={(e) => setPlayerName(e.target.value)}
+          />
+          {scoreError && <p>{scoreError.message}</p>}
+          <button type="submit" disabled={isSubmittingScore}>
+            {isSubmittingScore ? "Submitting" : "Submit"}
+          </button>
+        </form>
+
+        <button
+          type="button"
+          onClick={() => {
+            markScoreSkipped(slug);
+            dialogRef.current?.close();
+          }}
+        >
+          Skip
+        </button>
       </dialog>
     </section>
   );
