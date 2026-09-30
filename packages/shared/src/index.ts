@@ -61,3 +61,15 @@ export type GuessRequest = {
   x: number;
   y: number;
 };
+
+export type LeaderboardEntry = {
+  rank: number;
+  playerName: string;
+  durationMs: number;
+};
+
+export type Leaderboard = {
+  sceneName: string;
+  sceneSlug: string;
+  entries: LeaderboardEntry[];
+};
