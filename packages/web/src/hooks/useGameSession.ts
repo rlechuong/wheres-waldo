@@ -56,6 +56,9 @@ const useGameSession = (slug: string) => {
       if (!sessionId) throw new Error("No active session.");
       return patchScore(sessionId, playerName);
     },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ["leaderboard", slug] });
+    },
   });
 
   return {
