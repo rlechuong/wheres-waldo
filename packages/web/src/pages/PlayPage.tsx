@@ -33,6 +33,7 @@ const PlayPage = () => {
     isSubmittingScore,
     scoreResult,
     scoreError,
+    resetGame,
   } = useGameSession(slug);
 
   const elapsed = useElapsedTime(gameState?.startedAt, !!gameState && !gameState.isComplete);
@@ -101,7 +102,18 @@ const PlayPage = () => {
       {isResumingGame && <p>Resuming game...</p>}
       {isSubmittingScore && <p>Submitting Score...</p>}
       {lastGuessCorrect === false && <p>Not quite.</p>}
-      {!!gameState && !isComplete && <span>{formatDuration(duration)}</span>}
+      {!!gameState && !isComplete && (
+        <>
+          <span>{formatDuration(duration)}</span>
+          <button
+            onClick={() => {
+              if (confirm("Are you sure you want to start over?")) resetGame();
+            }}
+          >
+            Start over
+          </button>
+        </>
+      )}
       {isComplete && (
         <div className={styles.results}>
           <h2>You found everyone!</h2>
@@ -111,6 +123,7 @@ const PlayPage = () => {
           ) : (
             <button onClick={() => dialogRef.current?.showModal()}>Submit your score</button>
           )}
+          <button onClick={resetGame}>Play again</button>
           <Link to={`/scenes/${slug}/leaderboard`}>Leaderboard</Link>
           <Link to="/">All scenes</Link>
         </div>

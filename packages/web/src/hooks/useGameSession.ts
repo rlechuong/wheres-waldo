@@ -61,6 +61,13 @@ const useGameSession = (slug: string) => {
     },
   });
 
+  const resetGame = () => {
+    clearSessionId(slug);
+    startGameMutation.reset();
+    guessMutation.reset();
+    scoreMutation.reset();
+  };
+
   return {
     sessionId,
     gameState: sessionId ? gameQuery.data : undefined,
@@ -74,6 +81,7 @@ const useGameSession = (slug: string) => {
     isSubmittingScore: scoreMutation.isPending,
     scoreResult: scoreMutation.data,
     scoreError: scoreMutation.error,
+    resetGame,
   };
 };
 
