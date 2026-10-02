@@ -1,0 +1,7 @@
+.found {
+  opacity: 0.4;
+}
+
+.found p {
+  text-decoration: line-through;
+}

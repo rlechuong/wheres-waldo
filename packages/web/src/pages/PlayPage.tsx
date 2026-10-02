@@ -7,6 +7,7 @@ import { useElapsedTime } from "../hooks/useElapsedTime.js";
 import { markScoreSkipped, wasScoreSkipped } from "../lib/session.js";
 import { cloudinaryUrl } from "../lib/cloudinary.js";
 import { formatDuration } from "../lib/format.js";
+import CharacterPanel from "../components/CharacterPanel.js";
 import type { MouseEvent } from "react";
 import styles from "./PlayPage.module.css";
 
@@ -86,9 +87,9 @@ const PlayPage = () => {
       }
     : undefined;
 
-  const foundCharactersIds = new Set(gameState?.foundCharacters.map((character) => character.id));
+  const foundCharacterIds = new Set(gameState?.foundCharacters.map((character) => character.id));
   const remainingCharacters = scene.characters.filter(
-    (character) => !foundCharactersIds.has(character.id),
+    (character) => !foundCharacterIds.has(character.id),
   );
 
   return (
@@ -107,13 +108,17 @@ const PlayPage = () => {
           <span>{formatDuration(duration)}</span>
           <button
             onClick={() => {
-              if (confirm("Are you sure you want to start over?")) resetGame();
+              if (confirm("Are you sure you want to start over?")) {
+                setTarget(null);
+                resetGame();
+              }
             }}
           >
             Start over
           </button>
         </>
       )}
+      <CharacterPanel characters={scene.characters} foundIds={foundCharacterIds} />
       {isComplete && (
         <div className={styles.results}>
           <h2>You found everyone!</h2>

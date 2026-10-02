@@ -3,7 +3,7 @@ import { useQuery, useMutation, skipToken, useQueryClient } from "@tanstack/reac
 import { postGame, fetchGameState, postGuess, patchScore } from "../lib/api/games.js";
 import { loadSessionId, saveSessionId, clearSessionId } from "../lib/session.js";
 import { ApiError } from "../lib/api.js";
-import type { GuessRequest } from "@wheres-waldo/shared";
+import type { GuessRequest, GameState } from "@wheres-waldo/shared";
 
 const useGameSession = (slug: string) => {
   const queryClient = useQueryClient();
@@ -56,7 +56,10 @@ const useGameSession = (slug: string) => {
       if (!sessionId) throw new Error("No active session.");
       return patchScore(sessionId, playerName);
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      queryClient.setQueryData(["game", sessionId], (old: GameState | undefined) =>
+        old ? { ...old, playerName: data.playerName } : old,
+      );
       void queryClient.invalidateQueries({ queryKey: ["leaderboard", slug] });
     },
   });
