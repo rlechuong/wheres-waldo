@@ -94,18 +94,29 @@ const PlayPage = () => {
 
   return (
     <section>
+      <div className={styles.bar}>
+        <CharacterPanel characters={scene.characters} foundIds={foundCharacterIds} />
+        <div className={styles.barRight}>
+          {gameState && <span>{formatDuration(duration)}</span>}
+          <p className={styles.foundCounter}>
+            {foundCharacterIds.size} / {scene.characters.length}
+          </p>
+          <Link to={`/scenes/${slug}/leaderboard`}>Leaderboard</Link>
+        </div>
+      </div>
+
       <h1>{scene.name}</h1>
       {!sessionId && (
         <button onClick={startGame} disabled={isStartingGame}>
           Start
         </button>
       )}
+
       {isResumingGame && <p>Resuming game...</p>}
       {isSubmittingScore && <p>Submitting Score...</p>}
       {lastGuessCorrect === false && <p>Not quite.</p>}
       {!!gameState && !isComplete && (
         <>
-          <span>{formatDuration(duration)}</span>
           <button
             onClick={() => {
               if (confirm("Are you sure you want to start over?")) {
@@ -118,7 +129,6 @@ const PlayPage = () => {
           </button>
         </>
       )}
-      <CharacterPanel characters={scene.characters} foundIds={foundCharacterIds} />
       {isComplete && (
         <div className={styles.results}>
           <h2>You found everyone!</h2>
@@ -129,7 +139,6 @@ const PlayPage = () => {
             <button onClick={() => dialogRef.current?.showModal()}>Submit your score</button>
           )}
           <button onClick={resetGame}>Play again</button>
-          <Link to={`/scenes/${slug}/leaderboard`}>Leaderboard</Link>
           <Link to="/">All scenes</Link>
         </div>
       )}

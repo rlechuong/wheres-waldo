@@ -9,23 +9,18 @@ type CharacterPanelProps = {
 
 const CharacterPanel = ({ characters, foundIds }: CharacterPanelProps) => {
   return (
-    <div>
-      <p>
-        {foundIds.size} out of {characters.length} found
-      </p>
-      <ul>
-        {characters.map((character) => (
-          <li
-            key={character.id}
-            className={foundIds.has(character.id) ? styles.found : styles.remaining}
-          >
+    <ul className={styles.list}>
+      {characters.map((character) => {
+        const found = foundIds.has(character.id);
+        return (
+          <li key={character.id} className={`${styles.item} ${found ? styles.found : ""}`}>
             <img src={cloudinaryUrl(character.thumbnailPublicId, { width: 64 })} alt="" />
             <p>{character.name}</p>
-            {foundIds.has(character.id) && <span className="sr-only">(found)</span>}
+            {found && <span className="sr-only">(found)</span>}
           </li>
-        ))}
-      </ul>
-    </div>
+        );
+      })}
+    </ul>
   );
 };
 
