@@ -118,31 +118,39 @@ const PlayPage = () => {
       {isResumingGame && <p>Resuming game...</p>}
       {isSubmittingScore && <p>Submitting Score...</p>}
       {lastGuessCorrect === false && <p>Not quite.</p>}
-      {!!gameState && !isComplete && (
-        <>
-          <button
-            onClick={() => {
-              if (confirm("Are you sure you want to start over?")) {
-                setTarget(null);
-                resetGame();
-              }
-            }}
-          >
-            Start over
-          </button>
-        </>
+      {gameState && !isComplete && (
+        <button
+          onClick={() => {
+            if (confirm("Are you sure you want to start over?")) {
+              setTarget(null);
+              resetGame();
+            }
+          }}
+        >
+          Start over
+        </button>
       )}
       {isComplete && (
         <div className={styles.results}>
           <h2>You found everyone!</h2>
           <p>Your time: {formatDuration(duration)}</p>
-          {submittedName ? (
-            <p>Submitted as {submittedName}.</p>
-          ) : (
-            <button onClick={() => dialogRef.current?.showModal()}>Submit your score</button>
-          )}
-          <button onClick={resetGame}>Play again</button>
-          <Link to="/">All scenes</Link>
+          {submittedName && <p>Submitted as {submittedName}.</p>}
+          <div className={styles.resultsButtons}>
+            {!submittedName && (
+              <button onClick={() => dialogRef.current?.showModal()}>Submit your score</button>
+            )}
+            <button
+              onClick={() => {
+                if (submittedName || confirm("Play again? Your score won't be saved.")) {
+                  setTarget(null);
+                  resetGame();
+                }
+              }}
+            >
+              Play again
+            </button>
+            <Link to="/">All scenes</Link>
+          </div>
         </div>
       )}
       <div className={styles.imageContainer}>
@@ -180,7 +188,9 @@ const PlayPage = () => {
                   </li>
                 ))}
               </ul>
-              <button onClick={handleClose} className={styles.closeButton}>Close</button>
+              <button onClick={handleClose} className={styles.closeButton}>
+                Close
+              </button>
             </div>
           </>
         )}
@@ -203,20 +213,21 @@ const PlayPage = () => {
             onChange={(e) => setPlayerName(e.target.value)}
           />
           {scoreError && <p>{scoreError.message}</p>}
-          <button type="submit" disabled={isSubmittingScore}>
-            {isSubmittingScore ? "Submitting" : "Submit"}
-          </button>
+          <div className={styles.dialogActions}>
+            <button type="submit" disabled={isSubmittingScore} className={styles.primaryButton}>
+              {isSubmittingScore ? "Submitting" : "Submit"}
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                markScoreSkipped(slug);
+                dialogRef.current?.close();
+              }}
+            >
+              Skip
+            </button>
+          </div>
         </form>
-
-        <button
-          type="button"
-          onClick={() => {
-            markScoreSkipped(slug);
-            dialogRef.current?.close();
-          }}
-        >
-          Skip
-        </button>
       </dialog>
     </section>
   );
