@@ -1,5 +1,50 @@
+.scenePage {
+  max-width: var(--content-max);
+  margin: 0 auto;
+  padding: var(--space-4);
+}
+
+.scenesList {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr));
+  gap: var(--space-4);
+  list-style-type: none;
+  padding: 0;
+  margin-top: var(--space-4);
+}
+
+.scenesItem {
+  background-color: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  transition: transform var(--transition);
+}
+
+.scenesItem:hover {
+  transform: translateY(-4px);
+}
+
+.sceneLink {
+  display: block;
+  color: inherit;
+  text-decoration: none;
+}
+
 .thumbnail {
   width: 100%;
   aspect-ratio: 3 / 2;
   object-fit: cover;
+}
+
+.cardBody {
+  padding: var(--space-4);
+}
+
+.cardBody h2 {
+  font-size: var(--text-lg);
+}
+
+.cardBody p {
+  color: var(--text-medium);
 }

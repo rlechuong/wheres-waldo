@@ -98,8 +98,10 @@ h6 {
   --space-8: 2rem;
 
   --radius: 8px;
-  --bar-height: 5rem;
   --content-max: 1600px;
+
+  --border: rgb(255 255 255 / 0.12);
+  --border-subtle: rgb(255 255 255 / 0.08);
 }
 
 body {
@@ -124,7 +126,7 @@ h2 {
 
 a {
   color: var(--accent);
-  text-decoration-color: rgb(187 134 252 / 0.4);
+  text-decoration-color: color-mix(in srgb, var(--accent) 40%, transparent);
   text-underline-offset: 2px;
 }
 
@@ -135,7 +137,7 @@ a:hover {
 button {
   background-color: var(--surface-2);
   color: var(--text-high);
-  border: 1px solid rgb(255 255 255 / 0.12);
+  border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: var(--space-2) var(--space-4);
   cursor: pointer;

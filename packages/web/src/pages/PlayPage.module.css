@@ -7,7 +7,7 @@
   gap: var(--space-6);
   padding: var(--space-3) var(--space-4);
   background-color: var(--surface-1);
-  border-bottom: 1px solid rgb(255 255 255 / 0.08);
+  border-bottom: 1px solid var(--border-subtle);
 }
 
 .barRight {
@@ -30,7 +30,7 @@
 .characterMenu {
   position: absolute;
   background-color: var(--surface-1);
-  border: 1px solid rgb(255 255 255 / 0.12);
+  border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: var(--space-2);
   min-width: 10rem;
@@ -91,7 +91,7 @@
 
 .results {
   background-color: var(--surface-1);
-  border: 1px solid rgb(255 255 255 / 0.08);
+  border: 1px solid var(--border-subtle);
   border-radius: var(--radius);
   padding: var(--space-6);
   margin: var(--space-4) auto;
@@ -111,20 +111,20 @@
 .resultsButtons a {
   background-color: var(--surface-2);
   color: var(--text-high);
-  border: 1px solid rgb(255 255 255 / 0.12);
+  border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: var(--space-2) var(--space-4);
   text-decoration: none;
 }
 
-.resultsButtons a:hover:not(:disabled) {
+.resultsButtons a:hover {
   background-color: var(--surface-3);
 }
 
 .winDialog {
   background-color: var(--surface-3);
   color: var(--text-high);
-  border: 1px solid rgb(255 255 255 / 0.12);
+  border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: var(--space-6);
   max-width: 24rem;
@@ -141,14 +141,14 @@
   flex-direction: column;
   align-items: center;
   gap: var(--space-2);
-  border-top: 1px solid rgb(255 255 255 / 0.12);
+  border-top: 1px solid var(--border);
   padding-top: var(--space-4);
 }
 
 .winDialog input {
   background-color: var(--surface-1);
   color: var(--text-high);
-  border: 1px solid rgb(255 255 255 / 0.12);
+  border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: var(--space-2) var(--space-3);
   width: 100%;
@@ -170,6 +170,7 @@
 }
 
 .primaryButton:disabled {
+  background-color: var(--surface-2);
   color: var(--text-disabled);
   cursor: not-allowed;
 }
@@ -186,7 +187,7 @@
   transform: translateX(-50%);
   z-index: 30;
   background-color: var(--surface-3);
-  border: 1px solid rgb(255 255 255 / 0.12);
+  border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: var(--space-3) var(--space-6);
   box-shadow: 0 4px 12px rgb(0 0 0 / 0.4);

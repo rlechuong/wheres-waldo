@@ -15,28 +15,30 @@ const ScenesPage = () => {
   if (error) return <p>Couldn't load scenes: {error.message}</p>;
 
   return (
-    <section>
+    <section className={styles.scenePage}>
       <h1>Choose a scene</h1>
       {scenes.length === 0 ? (
         <p>No scenes yet.</p>
       ) : (
-        <ul>
+        <ul className={styles.scenesList}>
           {scenes.map((scene) => (
-            <li key={scene.id}>
-              <Link to={`/scenes/${scene.slug}`}>
+            <li key={scene.id} className={styles.scenesItem}>
+              <Link to={`/scenes/${scene.slug}`} className={styles.sceneLink}>
                 <img
                   className={styles.thumbnail}
                   src={cloudinaryUrl(scene.publicId, { width: 400 })}
                   alt=""
                   loading="lazy"
                 />
-                <h2>{scene.name}</h2>
+                <div className={styles.cardBody}>
+                  <h2>{scene.name}</h2>
+                  <p>
+                    {scene.characterCount === 1
+                      ? "1 character to find"
+                      : `${scene.characterCount} characters to find`}
+                  </p>
+                </div>
               </Link>
-              <p>
-                {scene.characterCount === 1
-                  ? "1 character to find"
-                  : `${scene.characterCount} characters to find`}
-              </p>
             </li>
           ))}
         </ul>
