@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { fetchScene } from "../lib/api/scenes.js";
 import { useGameSession } from "../hooks/useGameSession.js";
 import { useElapsedTime } from "../hooks/useElapsedTime.js";
+import { useTransientFlag } from "../hooks/useTransientFlag.js";
 import { markScoreSkipped, wasScoreSkipped } from "../lib/session.js";
 import { cloudinaryUrl } from "../lib/cloudinary.js";
 import { formatDuration } from "../lib/format.js";
@@ -26,9 +27,9 @@ const PlayPage = () => {
     gameState,
     startGame,
     isStartingGame,
-    isResumingGame,
     submitGuess,
     isSubmittingGuess,
+    lastGuess,
     lastGuessCorrect,
     submitScore,
     isSubmittingScore,
@@ -38,6 +39,8 @@ const PlayPage = () => {
   } = useGameSession(slug);
 
   const elapsed = useElapsedTime(gameState?.startedAt, !!gameState && !gameState.isComplete);
+
+  const showWrongToast = useTransientFlag(lastGuessCorrect === false ? lastGuess : undefined);
 
   const [target, setTarget] = useState<{ x: number; y: number } | null>(null);
   const [playerName, setPlayerName] = useState("");
@@ -63,7 +66,6 @@ const PlayPage = () => {
     const rect = e.currentTarget.getBoundingClientRect();
     const x = (e.clientX - rect.left) / rect.width;
     const y = (e.clientY - rect.top) / rect.width;
-    if (import.meta.env.DEV) console.log({ x, y });
     setTarget({ x, y });
   };
 
@@ -115,9 +117,7 @@ const PlayPage = () => {
         </button>
       )}
 
-      {isResumingGame && <p>Resuming game...</p>}
-      {isSubmittingScore && <p>Submitting Score...</p>}
-      {lastGuessCorrect === false && <p>Not quite.</p>}
+      {showWrongToast && <p className={styles.toast}>Not quite.</p>}
       {gameState && !isComplete && (
         <button
           onClick={() => {

@@ -23,6 +23,8 @@
 
 .imageContainer {
   position: relative;
+  max-width: var(--content-max);
+  margin: 0 auto;
 }
 
 .characterMenu {
@@ -175,4 +177,17 @@
 .dialogActions {
   display: flex;
   gap: var(--space-2);
+}
+
+.toast {
+  position: fixed;
+  bottom: var(--space-6);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 30;
+  background-color: var(--surface-3);
+  border: 1px solid rgb(255 255 255 / 0.12);
+  border-radius: var(--radius);
+  padding: var(--space-3) var(--space-6);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 0.4);
 }
