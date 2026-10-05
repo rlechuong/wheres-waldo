@@ -86,6 +86,9 @@ const PlayPage = () => {
         top: `${((target.y * scene.width) / scene.height) * 100}%`,
       }
     : undefined;
+  const menuOnLeft = target !== null && target.x > 0.75;
+  const menuAbove = target !== null && target.y * (scene.width / scene.height) > 0.75;
+  const menuTransform = `translate(${menuOnLeft ? "calc(-100% - 32px)" : "32px"}, ${menuAbove ? "calc(-100% + 32px)" : "-50%"})`;
 
   const foundCharacterIds = new Set(gameState?.foundCharacters.map((character) => character.id));
   const remainingCharacters = scene.characters.filter(
@@ -164,7 +167,10 @@ const PlayPage = () => {
         {target && (
           <>
             <div className={styles.targetingBox} style={targetPosition} />
-            <div className={styles.characterMenu} style={targetPosition}>
+            <div
+              className={styles.characterMenu}
+              style={{ ...targetPosition, transform: menuTransform }}
+            >
               <ul>
                 {remainingCharacters.map((character) => (
                   <li key={character.id}>
@@ -174,7 +180,7 @@ const PlayPage = () => {
                   </li>
                 ))}
               </ul>
-              <button onClick={handleClose}>Close</button>
+              <button onClick={handleClose} className={styles.closeButton}>Close</button>
             </div>
           </>
         )}
