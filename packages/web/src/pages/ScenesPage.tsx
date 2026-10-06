@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router";
 import { fetchScenes } from "../lib/api/scenes.js";
 import { cloudinaryUrl } from "../lib/cloudinary.js";
+import PageMessage from "../components/PageMessage.js";
 import styles from "./ScenesPage.module.css";
 
 const ScenesPage = () => {
@@ -11,8 +12,8 @@ const ScenesPage = () => {
     error,
   } = useQuery({ queryKey: ["scenes"], queryFn: fetchScenes });
 
-  if (isPending) return <p>Loading scenes...</p>;
-  if (error) return <p>Couldn't load scenes: {error.message}</p>;
+  if (isPending) return <PageMessage>Loading scenes...</PageMessage>;
+  if (error) return <PageMessage>Couldn't load scenes: {error.message}</PageMessage>;
 
   return (
     <section className={styles.scenePage}>

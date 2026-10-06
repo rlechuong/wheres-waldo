@@ -9,6 +9,7 @@ import { markScoreSkipped, wasScoreSkipped } from "../lib/session.js";
 import { cloudinaryUrl } from "../lib/cloudinary.js";
 import { formatDuration } from "../lib/format.js";
 import CharacterPanel from "../components/CharacterPanel.js";
+import PageMessage from "../components/PageMessage.js";
 import type { MouseEvent } from "react";
 import styles from "./PlayPage.module.css";
 
@@ -79,8 +80,8 @@ const PlayPage = () => {
     setTarget(null);
   };
 
-  if (isLoadingScene) return <p>Loading scene...</p>;
-  if (sceneError) return <p>Couldn't load scene: {sceneError.message}</p>;
+  if (isLoadingScene) return <PageMessage>Loading scene...</PageMessage>;
+  if (sceneError) return <PageMessage>Couldn't load scene: {sceneError.message}</PageMessage>;
 
   const targetPosition = target
     ? {
@@ -110,26 +111,28 @@ const PlayPage = () => {
         </div>
       </div>
 
-      <h1>{scene.name}</h1>
-      {!sessionId && (
-        <button onClick={startGame} disabled={isStartingGame}>
-          Start
-        </button>
-      )}
+      <div className={styles.gameControls}>
+        <h1>{scene.name}</h1>
+        {!sessionId && (
+          <button onClick={startGame} disabled={isStartingGame}>
+            Start
+          </button>
+        )}
+        {gameState && !isComplete && (
+          <button
+            onClick={() => {
+              if (confirm("Are you sure you want to start over?")) {
+                setTarget(null);
+                resetGame();
+              }
+            }}
+          >
+            Start over
+          </button>
+        )}
+      </div>
 
       {showWrongToast && <p className={styles.toast}>Not quite.</p>}
-      {gameState && !isComplete && (
-        <button
-          onClick={() => {
-            if (confirm("Are you sure you want to start over?")) {
-              setTarget(null);
-              resetGame();
-            }
-          }}
-        >
-          Start over
-        </button>
-      )}
       {isComplete && (
         <div className={styles.results}>
           <h2>You found everyone!</h2>
@@ -149,7 +152,9 @@ const PlayPage = () => {
             >
               Play again
             </button>
-            <Link to="/">All scenes</Link>
+            <Link to="/" className="button-link">
+              All scenes
+            </Link>
           </div>
         </div>
       )}
