@@ -89,8 +89,8 @@ const PlayPage = () => {
         top: `${((target.y * scene.width) / scene.height) * 100}%`,
       }
     : undefined;
-  const menuOnLeft = target !== null && target.x > 0.75;
-  const menuAbove = target !== null && target.y * (scene.width / scene.height) > 0.75;
+  const menuOnLeft = target !== null && target.x > 0.5;
+  const menuAbove = target !== null && target.y * (scene.width / scene.height) > 0.7;
   const menuTransform = `translate(${menuOnLeft ? "calc(-100% - 32px)" : "32px"}, ${menuAbove ? "calc(-100% + 32px)" : "-50%"})`;
 
   const foundCharacterIds = new Set(gameState?.foundCharacters.map((character) => character.id));
